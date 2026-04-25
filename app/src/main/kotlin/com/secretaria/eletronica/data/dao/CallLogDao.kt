@@ -23,7 +23,7 @@ interface CallLogDao {
     suspend fun getCallLogsByNumber(phoneNumber: String): List<CallLogEntity>
 
     @Query("SELECT * FROM call_logs WHERE simSlot = :simSlot ORDER BY callDate DESC")
-    suspend fun getCallLogsBySimSlot(simSlot: Int): LiveData<List<CallLogEntity>>
+    fun getCallLogsBySimSlot(simSlot: Int): LiveData<List<CallLogEntity>>
 
     @Insert
     suspend fun insertCallLog(callLog: CallLogEntity): Long
