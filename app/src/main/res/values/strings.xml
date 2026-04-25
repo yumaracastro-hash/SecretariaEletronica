@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Secretária Eletrônica</string>
+    
+    <!-- Telas principais -->
+    <string name="main_title">Secretária Eletrônica</string>
+    <string name="active_greeting">Saudação Ativa</string>
+    <string name="record_greeting">Gravar Saudação</string>
+    <string name="call_history">Histórico de Chamadas</string>
+    <string name="settings">Configurações</string>
+    
+    <!-- Saudações padrão -->
+    <string name="greeting_lunch_time">Horário de Almoço</string>
+    <string name="greeting_after_hours">Fora do Horário Comercial</string>
+    <string name="greeting_weekend">Finais de Semana</string>
+    <string name="greeting_holiday">Feriados</string>
+    <string name="greeting_vacation">Férias</string>
+    <string name="greeting_custom_1">Personalizado 1</string>
+    <string name="greeting_custom_2">Personalizado 2</string>
+    <string name="greeting_custom_3">Personalizado 3</string>
+    <string name="greeting_custom_4">Personalizado 4</string>
+    <string name="greeting_custom_5">Personalizado 5</string>
+    
+    <!-- Botões -->
+    <string name="btn_record">Gravar</string>
+    <string name="btn_play">Reproduzir</string>
+    <string name="btn_stop">Parar</string>
+    <string name="btn_save">Salvar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_delete">Deletar</string>
+    <string name="btn_select">Selecionar</string>
+    <string name="btn_settings">Configurações</string>
+    
+    <!-- Mensagens -->
+    <string name="recording_started">Gravação iniciada...</string>
+    <string name="recording_stopped">Gravação parada</string>
+    <string name="recording_saved">Saudação salva com sucesso</string>
+    <string name="recording_error">Erro ao gravar saudação</string>
+    <string name="greeting_selected">Saudação selecionada</string>
+    <string name="call_received">Chamada recebida</string>
+    <string name="call_answered">Chamada atendida automaticamente</string>
+    <string name="playing_greeting">Reproduzindo saudação...</string>
+    <string name="no_recording">Nenhuma gravação para esta saudação</string>
+    <string name="permission_denied">Permissão negada</string>
+    <string name="permission_required">Permissão necessária para continuar</string>
+    
+    <!-- Histórico de chamadas -->
+    <string name="incoming_call">Chamada recebida</string>
+    <string name="sim_1">SIM 1</string>
+    <string name="sim_2">SIM 2</string>
+    <string name="unknown_number">Número desconhecido</string>
+    <string name="no_calls">Nenhuma chamada registrada</string>
+    
+    <!-- Notificações -->
+    <string name="notification_channel_calls">Chamadas</string>
+    <string name="notification_channel_service">Serviço</string>
+    <string name="notification_service_running">Secretária eletrônica ativa</string>
+    <string name="notification_call_answered">Chamada atendida automaticamente</string>
+    
+    <!-- Configurações -->
+    <string name="setting_auto_answer">Atendimento Automático</string>
+    <string name="setting_auto_answer_desc">Atender chamadas automaticamente</string>
+    <string name="setting_schedule">Agendamento Automático</string>
+    <string name="setting_schedule_desc">Ativar saudações por horário/dia</string>
+    <string name="setting_backup">Backup de Mensagens</string>
+    <string name="setting_backup_desc">Fazer backup das gravações</string>
+    <string name="setting_logs">Visualizar Logs</string>
+    <string name="setting_logs_desc">Ver histórico de funcionamento</string>
+    
+    <!-- Erros -->
+    <string name="error_microphone">Erro ao acessar microfone</string>
+    <string name="error_storage">Erro ao acessar armazenamento</string>
+    <string name="error_call_service">Erro ao iniciar serviço de chamadas</string>
+</resources>
