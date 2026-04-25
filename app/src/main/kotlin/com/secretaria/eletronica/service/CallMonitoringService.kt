@@ -114,7 +114,7 @@ class CallMonitoringService : Service() {
         }
     }
 
-    private fun createNotification(): NotificationCompat.Notification {
+    private fun createNotification(): android.app.Notification {
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,
