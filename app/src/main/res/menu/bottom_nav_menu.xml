@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/greetingsFragment"
+        android:icon="@android:drawable/ic_btn_speak_now"
+        android:title="Saudações" />
+
+    <item
+        android:id="@+id/callHistoryFragment"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="Histórico" />
+
+</menu>

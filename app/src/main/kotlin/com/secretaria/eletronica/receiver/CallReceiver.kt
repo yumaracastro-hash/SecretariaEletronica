@@ -3,6 +3,7 @@ package com.secretaria.eletronica.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.telephony.TelephonyManager
 import com.secretaria.eletronica.service.CallMonitoringService
 import com.secretaria.eletronica.util.Logger
@@ -10,15 +11,20 @@ import com.secretaria.eletronica.util.Logger
 class CallReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        Logger.i("CallReceiver: onReceive - ${intent.action}")
+        try {
+            Logger.initialize(context)
+            Logger.i("CallReceiver: onReceive - ${intent.action}")
 
-        when (intent.action) {
-            TelephonyManager.ACTION_PHONE_STATE_CHANGED -> {
-                handlePhoneStateChanged(context, intent)
+            when (intent.action) {
+                TelephonyManager.ACTION_PHONE_STATE_CHANGED -> {
+                    handlePhoneStateChanged(context, intent)
+                }
+                Intent.ACTION_NEW_OUTGOING_CALL -> {
+                    handleNewOutgoingCall(context, intent)
+                }
             }
-            Intent.ACTION_NEW_OUTGOING_CALL -> {
-                handleNewOutgoingCall(context, intent)
-            }
+        } catch (e: Exception) {
+            // Ignore errors in receiver
         }
     }
 
@@ -31,7 +37,9 @@ class CallReceiver : BroadcastReceiver() {
         when (state) {
             TelephonyManager.EXTRA_STATE_RINGING -> {
                 Logger.i("CallReceiver: Incoming call from $incomingNumber")
-                startCallMonitoringService(context, incomingNumber)
+                if (incomingNumber.isNotEmpty()) {
+                    startCallMonitoringService(context, incomingNumber)
+                }
             }
             TelephonyManager.EXTRA_STATE_OFFHOOK -> {
                 Logger.i("CallReceiver: Call answered")
@@ -52,7 +60,11 @@ class CallReceiver : BroadcastReceiver() {
             val serviceIntent = Intent(context, CallMonitoringService::class.java).apply {
                 putExtra("PHONE_NUMBER", phoneNumber)
             }
-            context.startService(serviceIntent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
         } catch (e: Exception) {
             Logger.e("CallReceiver: Error starting service", e)
         }

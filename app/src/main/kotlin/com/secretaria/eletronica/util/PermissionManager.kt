@@ -8,13 +8,12 @@ import androidx.core.content.ContextCompat
 
 object PermissionManager {
 
-    val CALL_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val CALL_PERMISSIONS: Array<String> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.ANSWER_PHONE_CALLS,
             Manifest.permission.CALL_PHONE,
             Manifest.permission.READ_CALL_LOG,
-            Manifest.permission.WRITE_CALL_LOG,
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.POST_NOTIFICATIONS
         )
@@ -24,29 +23,15 @@ object PermissionManager {
             Manifest.permission.ANSWER_PHONE_CALLS,
             Manifest.permission.CALL_PHONE,
             Manifest.permission.READ_CALL_LOG,
-            Manifest.permission.WRITE_CALL_LOG,
             Manifest.permission.READ_CONTACTS
         )
     }
 
-    val AUDIO_PERMISSIONS = arrayOf(
-        Manifest.permission.RECORD_AUDIO,
-        Manifest.permission.MODIFY_AUDIO_SETTINGS
+    val AUDIO_PERMISSIONS: Array<String> = arrayOf(
+        Manifest.permission.RECORD_AUDIO
     )
 
-    val STORAGE_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        arrayOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-    } else {
-        arrayOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-    }
-
-    val ALL_PERMISSIONS = CALL_PERMISSIONS + AUDIO_PERMISSIONS + STORAGE_PERMISSIONS
+    val ALL_PERMISSIONS: Array<String> = CALL_PERMISSIONS + AUDIO_PERMISSIONS
 
     fun hasPermission(context: Context, permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -65,10 +50,6 @@ object PermissionManager {
 
     fun hasAudioPermissions(context: Context): Boolean {
         return hasPermissions(context, AUDIO_PERMISSIONS)
-    }
-
-    fun hasStoragePermissions(context: Context): Boolean {
-        return hasPermissions(context, STORAGE_PERMISSIONS)
     }
 
     fun hasAllPermissions(context: Context): Boolean {

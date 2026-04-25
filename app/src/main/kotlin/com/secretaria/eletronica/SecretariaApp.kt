@@ -8,8 +8,13 @@ class SecretariaApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Inicializar logger
-        Logger.initialize(this)
-        Logger.i("SecretariaApp: Application created")
+        try {
+            // Inicializar logger
+            Logger.initialize(this)
+            Logger.i("SecretariaApp: Application created")
+        } catch (e: Exception) {
+            // Continue without logging if initialization fails
+            e.printStackTrace()
+        }
     }
 }

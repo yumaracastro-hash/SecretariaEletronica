@@ -19,14 +19,16 @@ import com.secretaria.eletronica.util.ContactManager
 import com.secretaria.eletronica.util.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class CallMonitoringService : Service() {
 
-    private lateinit var callLogRepository: CallLogRepository
-    private lateinit var greetingRepository: GreetingRepository
-    private lateinit var contactManager: ContactManager
-    private val serviceScope = CoroutineScope(Dispatchers.Default)
+    private var callLogRepository: CallLogRepository? = null
+    private var greetingRepository: GreetingRepository? = null
+    private var contactManager: ContactManager? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     companion object {
         private const val NOTIFICATION_ID = 1
@@ -35,24 +37,41 @@ class CallMonitoringService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Logger.initialize(this)
-        Logger.i("CallMonitoringService: onCreate")
+        try {
+            Logger.initialize(this)
+            Logger.i("CallMonitoringService: onCreate")
+        } catch (e: Exception) {
+            // Continue without logging
+        }
 
-        val database = AppDatabase.getInstance(this)
-        callLogRepository = CallLogRepository(database.callLogDao())
-        greetingRepository = GreetingRepository(database.greetingDao())
-        contactManager = ContactManager(this)
+        try {
+            val database = AppDatabase.getInstance(this)
+            callLogRepository = CallLogRepository(database.callLogDao())
+            greetingRepository = GreetingRepository(database.greetingDao())
+            contactManager = ContactManager(this)
+        } catch (e: Exception) {
+            Logger.e("CallMonitoringService: Error initializing repositories", e)
+        }
 
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification())
+
+        try {
+            startForeground(NOTIFICATION_ID, createNotification())
+        } catch (e: Exception) {
+            Logger.e("CallMonitoringService: Error starting foreground", e)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Logger.i("CallMonitoringService: onStartCommand")
+        try {
+            Logger.i("CallMonitoringService: onStartCommand")
 
-        val phoneNumber = intent?.getStringExtra("PHONE_NUMBER") ?: ""
-        if (phoneNumber.isNotEmpty()) {
-            handleIncomingCall(phoneNumber)
+            val phoneNumber = intent?.getStringExtra("PHONE_NUMBER") ?: ""
+            if (phoneNumber.isNotEmpty()) {
+                handleIncomingCall(phoneNumber)
+            }
+        } catch (e: Exception) {
+            Logger.e("CallMonitoringService: Error in onStartCommand", e)
         }
 
         return START_STICKY
@@ -64,7 +83,12 @@ class CallMonitoringService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Logger.i("CallMonitoringService: onDestroy")
+        try {
+            serviceScope.cancel()
+            Logger.i("CallMonitoringService: onDestroy")
+        } catch (e: Exception) {
+            // Ignore
+        }
     }
 
     private fun handleIncomingCall(phoneNumber: String) {
@@ -73,7 +97,11 @@ class CallMonitoringService : Service() {
         serviceScope.launch {
             try {
                 // Obter nome do contato
-                val contactName = contactManager.getContactNameByNumber(phoneNumber)
+                val contactName = try {
+                    contactManager?.getContactNameByNumber(phoneNumber)
+                } catch (e: Exception) {
+                    null
+                }
 
                 // Registrar chamada no banco de dados
                 val callLog = CallLogEntity(
@@ -84,14 +112,18 @@ class CallMonitoringService : Service() {
                     callType = "INCOMING"
                 )
 
-                callLogRepository.insertCallLog(callLog)
+                callLogRepository?.insertCallLog(callLog)
                 Logger.i("CallMonitoringService: Call logged - $phoneNumber")
 
                 // Iniciar serviço de atendimento automático
                 val autoAnswerIntent = Intent(this@CallMonitoringService, AutoAnswerService::class.java).apply {
                     putExtra("PHONE_NUMBER", phoneNumber)
                 }
-                startService(autoAnswerIntent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(autoAnswerIntent)
+                } else {
+                    startService(autoAnswerIntent)
+                }
 
             } catch (e: Exception) {
                 Logger.e("CallMonitoringService: Error handling call", e)
@@ -100,22 +132,29 @@ class CallMonitoringService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Monitoramento de Chamadas",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Notificações do serviço de monitoramento de chamadas"
-            }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    "Monitoramento de Chamadas",
+                    NotificationManager.IMPORTANCE_LOW
+                ).apply {
+                    description = "Notificações do serviço de monitoramento de chamadas"
+                    setShowBadge(false)
+                }
 
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.createNotificationChannel(channel)
+            }
+        } catch (e: Exception) {
+            Logger.e("CallMonitoringService: Error creating notification channel", e)
         }
     }
 
     private fun createNotification(): android.app.Notification {
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
@@ -126,9 +165,10 @@ class CallMonitoringService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Secretária Eletrônica")
             .setContentText("Monitorando chamadas...")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(android.R.drawable.ic_menu_call)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }
 }

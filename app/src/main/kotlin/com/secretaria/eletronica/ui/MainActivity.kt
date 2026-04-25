@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.secretaria.eletronica.R
 import com.secretaria.eletronica.databinding.ActivityMainBinding
 import com.secretaria.eletronica.service.CallMonitoringService
@@ -32,8 +31,8 @@ class MainActivity : AppCompatActivity() {
         } else {
             Toast.makeText(
                 this,
-                "Permissões necessárias não foram concedidas",
-                Toast.LENGTH_SHORT
+                "Permissões necessárias não foram concedidas. O app pode não funcionar corretamente.",
+                Toast.LENGTH_LONG
             ).show()
             Logger.w("MainActivity: Some permissions denied")
         }
@@ -42,41 +41,55 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Logger.initialize(this)
-        Logger.i("MainActivity: onCreate")
+        try {
+            Logger.initialize(this)
+            Logger.i("MainActivity: onCreate")
+        } catch (e: Exception) {
+            // Logger initialization failed, continue without logging
+        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
+        // Configurar Navigation com FragmentContainerView
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.fragment_container) as? NavHostFragment
 
-        // Configurar Navigation
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        navController = navHostFragment.navController
+        if (navHostFragment != null) {
+            navController = navHostFragment.navController
+
+            // Configurar BottomNavigationView com NavController
+            binding.bottomNavigation.setupWithNavController(navController)
+        } else {
+            Logger.e("MainActivity: NavHostFragment not found")
+        }
 
         // Solicitar permissões
         requestPermissions()
-
-        // Iniciar serviço de monitoramento
-        startCallMonitoringService()
     }
 
     private fun requestPermissions() {
-        val permissionsToRequest = mutableListOf<String>()
+        try {
+            val permissionsToRequest = mutableListOf<String>()
 
-        // Adicionar permissões necessárias
-        permissionsToRequest.addAll(PermissionManager.CALL_PERMISSIONS)
-        permissionsToRequest.addAll(PermissionManager.AUDIO_PERMISSIONS)
-        permissionsToRequest.addAll(PermissionManager.STORAGE_PERMISSIONS)
+            // Adicionar permissões necessárias
+            permissionsToRequest.addAll(PermissionManager.CALL_PERMISSIONS)
+            permissionsToRequest.addAll(PermissionManager.AUDIO_PERMISSIONS)
 
-        // Remover permissões já concedidas
-        val permissionsToRequestFiltered = permissionsToRequest.filter {
-            !PermissionManager.hasPermission(this, it)
-        }.toTypedArray()
+            // Remover permissões já concedidas
+            val permissionsToRequestFiltered = permissionsToRequest.filter {
+                !PermissionManager.hasPermission(this, it)
+            }.toTypedArray()
 
-        if (permissionsToRequestFiltered.isNotEmpty()) {
-            Logger.i("MainActivity: Requesting permissions: ${permissionsToRequestFiltered.joinToString()}")
-            requestPermissionsLauncher.launch(permissionsToRequestFiltered)
+            if (permissionsToRequestFiltered.isNotEmpty()) {
+                Logger.i("MainActivity: Requesting permissions: ${permissionsToRequestFiltered.joinToString()}")
+                requestPermissionsLauncher.launch(permissionsToRequestFiltered)
+            } else {
+                // Todas as permissões já concedidas, iniciar serviço
+                startCallMonitoringService()
+            }
+        } catch (e: Exception) {
+            Logger.e("MainActivity: Error requesting permissions", e)
         }
     }
 
@@ -91,16 +104,15 @@ class MainActivity : AppCompatActivity() {
             Logger.i("MainActivity: Call monitoring service started")
         } catch (e: Exception) {
             Logger.e("MainActivity: Error starting service", e)
-            Toast.makeText(
-                this,
-                "Erro ao iniciar serviço de monitoramento",
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Logger.i("MainActivity: onDestroy")
+        try {
+            Logger.i("MainActivity: onDestroy")
+        } catch (e: Exception) {
+            // Ignore
+        }
     }
 }
